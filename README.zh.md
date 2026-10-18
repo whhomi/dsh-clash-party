@@ -30,6 +30,26 @@ dsh-proxy/
 
 ## 安装
 
+### 先准备内核（插件不自带）
+
+本插件**不包含也不分发 mihomo 二进制**，需要你自己装一份：
+
+1. 到 https://github.com/MetaCubeX/mihomo/releases 下载对应平台的压缩包
+   （Windows 一般用 `mihomo-windows-amd64-compatible-*.zip`）；
+2. 解压后把可执行文件放到插件的数据目录 `bin/` 下，文件名保持 `mihomo.exe`（Windows）/ `mihomo`：
+
+   ```
+   <dataDir>/bin/mihomo.exe        # dataDir 默认 $DSH_HOME/proxy
+   ```
+
+   或者把它加进 `PATH`，或者在配置里直接写 `corePath: '/绝对路径/mihomo'`；
+3. 如果内核启动时找不到 geo 数据，把它从任意 clash/mihomo 安装目录复制到 `<dataDir>/`，
+   或设置 `DSH_PROXY_GEO_DIR` 指向有 `Country.mmdb` / `geosite.dat` / `geoip.dat` 的目录。
+
+内核缺失时面板会显示红色提示，把上面三条路径直接写在提示里，`proxy_start` 也会报同样的错。
+
+### 装插件
+
 ```bash
 dsh plugin --profile <profile> add link:<本目录路径>
 ```
@@ -70,9 +90,25 @@ dsh plugin --profile <profile> add link:<本目录路径>
 | `controllerPort` | `19090` | mihomo REST API |
 | `panelPort` | `17891` | 面板独立回环服务（不依赖宿主 webserver） |
 | `bootstrapConfig` | `''` | 基础 Clash 配置；用于提供初始可用节点 |
-| `subscriptions[]` | `[]` | `id / url / interval / userAgent / prefix / mode` |
+| `subscriptions[]` | `[]` | `id / url / interval / userAgent / prefix / mode`；`interval` 单位秒，**默认 3600（60 分钟）** |
 | `nodes[]` | `[]` | 节点 URI 列表 |
 | `healthCheckUrl` | gstatic 204 | 测速目标 |
+
+## 订阅自动刷新
+
+- 每条订阅默认 **每 60 分钟**自动拉取一次（`interval: 3600`），到点由插件经运行中的内核拉取、
+  写文件、再热重载内核；面板顶部显示「每 60 分钟自动刷新」和「下次刷新」时间。
+- 想改成别的周期，改 `interval` 即可（单位秒）：
+
+  ```yaml
+  subscriptions:
+    - id: airport
+      url: 'https://example.com/sub?token=...'
+      interval: 1800      # 30 分钟
+  ```
+
+- 多条订阅同时存在时，按其中**最短**的 `interval` 触发一次统一刷新。
+- 也可以随时手动刷新：面板「刷新订阅」按钮，或工具 `proxy_refresh`。
 
 ## 三条输入路径
 
@@ -101,13 +137,22 @@ bootstrapConfig ──(端口改写/tun 关闭)───────────
 
 ## 面板
 
+布局参考 clash-party 的代理页：
+
+- **顶部工具栏**：状态点、运行版本、**规则 / 全局 / 直连** 模式切换、测速、刷新订阅、启停
+- **信息条**：代理地址、节点数、订阅大小 + 自动刷新周期 + 下次刷新时间
+- **左侧分组栏**：分组名 + 成员数，选中项高亮
+- **右侧节点区**：搜索框过滤、两列节点卡片、右侧延迟色块（<150ms 绿 / <300ms 黄 / 其它红）、
+  当前选中卡片加边框高亮，点击即切换
+- 内核缺失时顶部显示红色提示，写清内核应该放到哪里
+
 浏览器半向宿主注册两个槽位：`sidebar.panellist`（图标）与 `main`（页面），
 数据走插件自己的 HTTP 面：
 
 - 宿主 `webServer` 上的 `/dsh-proxy/*` 精确路由（存在时）
 - 独立回环服务 `127.0.0.1:<panelPort>`（始终启动，Electron 从 `file://` 加载时也能用）
 
-路由：`status`(GET)、`nodes` / `start` / `stop` / `select` / `test` / `import` / `refresh`(POST)。
+路由：`status`(GET)、`nodes` / `start` / `stop` / `select` / `test` / `import` / `refresh` / `mode`(POST)。
 
 ## 让浏览器 / 其他程序走这个代理
 

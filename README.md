@@ -34,6 +34,27 @@ dsh-proxy/
 
 ## Install
 
+### Bring your own core
+
+The plugin ships **no mihomo binary**. Install one yourself:
+
+1. Download a build from https://github.com/MetaCubeX/mihomo/releases
+   (on Windows, `mihomo-windows-amd64-compatible-*.zip` is the usual pick).
+2. Put the executable in the plugin data dir as `mihomo.exe` / `mihomo`:
+
+   ```
+   <dataDir>/bin/mihomo.exe        # dataDir defaults to $DSH_HOME/proxy
+   ```
+
+   …or put it on `PATH`, or set `corePath: '/absolute/path/to/mihomo'`.
+3. If the core cannot find geodata, copy `Country.mmdb` / `geosite.dat` / `geoip.dat` from any
+   clash/mihomo install into `<dataDir>/`, or point `DSH_PROXY_GEO_DIR` at a directory that has them.
+
+When the core is missing the panel shows a red banner naming those exact paths, and `proxy_start`
+fails with the same message.
+
+### Install the plugin
+
 ```bash
 dsh plugin --profile <profile> add link:<path-to-this-directory>
 ```
@@ -74,9 +95,26 @@ Restart DSH to load it.
 | `controllerPort` | `19090` | mihomo REST API |
 | `panelPort` | `17891` | Standalone loopback carrier for the panel |
 | `bootstrapConfig` | `''` | Base Clash config; supplies the first usable nodes |
-| `subscriptions[]` | `[]` | `id / url / interval / userAgent / prefix / mode` |
+| `subscriptions[]` | `[]` | `id / url / interval / userAgent / prefix / mode`; `interval` is seconds, **default 3600 (60 minutes)** |
 | `nodes[]` | `[]` | Node URIs |
 | `healthCheckUrl` | gstatic 204 | Latency test target |
+
+## Subscription refresh
+
+- Each subscription is pulled **every 60 minutes** by default (`interval: 3600`); the plugin
+  fetches through the running core, writes the node file and hot-reloads the core. The panel shows
+  the period and the next refresh time.
+- Change the period with `interval` (seconds):
+
+  ```yaml
+  subscriptions:
+    - id: airport
+      url: 'https://example.com/sub?token=...'
+      interval: 1800      # 30 minutes
+  ```
+
+- With several subscriptions the **shortest** `interval` drives one shared refresh tick.
+- Refresh on demand with the panel button or the `proxy_refresh` tool.
 
 ## Input paths
 
@@ -105,6 +143,15 @@ bootstrapConfig ──(ports rewritten, tun forced off)────────�
 
 ## Panel
 
+The layout follows clash-party's proxy page:
+
+- **Toolbar**: status dot, version, **Rule / Global / Direct** mode switch, test, refresh, start/stop
+- **Meta bar**: proxy address, node count, subscription size + refresh period + next refresh
+- **Left group rail**: group name with member count, active group highlighted
+- **Right node grid**: search filter, two-column cards, latency chip
+  (green <150ms / yellow <300ms / red otherwise), active card outlined, click to switch
+- A red banner names the expected core path when no core is installed
+
 The browser half registers two slots — `sidebar.panellist` (icon) and `main` (page) — and talks
 to the host over the plugin's own HTTP surface:
 
@@ -112,7 +159,7 @@ to the host over the plugin's own HTTP surface:
 - a standalone loopback server on `127.0.0.1:<panelPort>`, always started, so a renderer loaded
   from `file://` still works
 
-Routes: `status` (GET), `nodes` / `start` / `stop` / `select` / `test` / `import` / `refresh` (POST).
+Routes: `status` (GET), `nodes` / `start` / `stop` / `select` / `test` / `import` / `refresh` / `mode` (POST).
 
 ## Pointing other programs at it
 

@@ -27,7 +27,7 @@
         # Any Clash-format YAML used as the base config (ports/controller are
         # rewritten, tun is forced off). Empty = a minimal generated config.
         bootstrapConfig: ''
-        # Example:
+        # Example (interval is seconds; the default is 3600 = refresh every 60 minutes):
         # subscriptions:
         #   - id: airport
         #     url: 'https://example.com/subscribe?token=...'

@@ -1,6 +1,6 @@
 {
   "name": "dsh-proxy",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Self-hosted mihomo core for the DSH host: subscription providers, single-node import (ss/trojan/vmess/vless/hysteria2/tuic), per-process egress routing, agent tools and a Proxy panel in the web client — without running any external proxy client.",
   "type": "module",
   "main": "lib/index.js",
