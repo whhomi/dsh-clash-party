@@ -7,6 +7,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { parseNodeInput, toClashYaml } from '../lib/node-uri.js'
 import { composeConfig, detectBootstrapSelector } from '../lib/compose.js'
+import { buildChromeArgs, resolveChromePath } from '../lib/chrome.js'
 
 const B = (s) => Buffer.from(s, 'utf8').toString('base64')
 let passed = 0
@@ -144,6 +145,32 @@ test('compose rewrites ports, disables tun, keeps rules', () => {
 test('detectBootstrapSelector falls back to the first group', () => {
   assert.equal(detectBootstrapSelector('proxy-groups:\n  - name: G\n    type: select\n'), 'G')
   assert.equal(detectBootstrapSelector('rules: []\n'), undefined)
+})
+
+test('chrome args carry the proxy, a private profile and no first-run noise', () => {
+  const args = buildChromeArgs({ proxyUrl: 'http://127.0.0.1:17890', userDataDir: '/tmp/p', extraArgs: ['--incognito', ''] })
+  assert.deepEqual(args, [
+    '--proxy-server=http://127.0.0.1:17890',
+    '--user-data-dir=/tmp/p',
+    '--no-first-run',
+    '--no-default-browser-check',
+    '--incognito',
+  ])
+})
+
+test('chrome args omit the proxy flag when no proxy is given', () => {
+  const args = buildChromeArgs({ proxyUrl: '', userDataDir: '', extraArgs: [] })
+  assert.equal(args.some((a) => a.startsWith('--proxy-server')), false)
+  assert.equal(args.some((a) => a.startsWith('--user-data-dir')), false)
+})
+
+test('resolveChromePath honours an explicit path only when it exists', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-proxy-chrome-'))
+  const fake = path.join(tmp, process.platform === 'win32' ? 'chrome.exe' : 'chrome')
+  fs.writeFileSync(fake, '')
+  assert.equal(resolveChromePath(fake, {}, 'linux'), fake)
+  assert.equal(resolveChromePath(path.join(tmp, 'nope'), {}, 'linux'), undefined)
+  assert.equal(resolveChromePath('', { DSH_PROXY_CHROME: fake }, 'linux'), fake)
 })
 
 console.log(`\n${passed} passed${process.exitCode ? ', with failures' : ''}`)

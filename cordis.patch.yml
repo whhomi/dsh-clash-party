@@ -37,3 +37,8 @@
         subscriptions: []
         # Single nodes as URIs (ss/trojan/vmess/vless/hysteria2/tuic).
         nodes: []
+        # Browser quick-launch (the panel's "启动 Chrome" button). Empty chromePath = find
+        # Chrome/Edge automatically; chromeUserDataDir defaults to <dataDir>/chrome-profile.
+        chromePath: ''
+        chromeUserDataDir: ''
+        chromeArgs: []

@@ -164,6 +164,10 @@ The layout mirrors clash-party's proxy page (left function rail + right group/no
     (green <150ms / yellow <300ms / red otherwise). The active node is outlined in blue;
     clicking switches to it
 - A red banner names the expected core path when no core is installed
+- **Chrome card** at the bottom of the left rail: one click starts a browser with its own
+  profile and `--proxy-server=<httpProxy>` (your everyday browser is untouched). When no
+  Chrome/Edge is found it asks for `chromePath`; when the environment blocks the launch it
+  prints the full command line so you can run it in a normal terminal
 
 The browser half registers two slots — `sidebar.panellist` (icon) and `main` (page) — and talks
 to the host over the plugin's own HTTP surface:
