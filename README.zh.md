@@ -2,6 +2,8 @@
 
 [English](README.md) | 中文
 
+> 仓库：<https://github.com/whhomi/dsh-clash-party>（包名仍为 `dsh-proxy`，两者不影响安装）
+
 给 DeepSeek Harness（DSH）用的**自托管代理插件**：插件自己在宿主进程里托管一个
 [mihomo](https://github.com/MetaCubeX/mihomo) 内核，不依赖任何外部代理客户端。
 

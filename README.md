@@ -2,6 +2,8 @@
 
 English | [中文](README.zh.md)
 
+> Repository: <https://github.com/whhomi/dsh-clash-party> (the package stays named `dsh-proxy`; the repo name does not affect installation)
+
 A **self-hosted proxy plugin** for DeepSeek Harness (DSH). The plugin runs a
 [mihomo](https://github.com/MetaCubeX/mihomo) core inside the host process, so no
 external proxy client has to be running.
