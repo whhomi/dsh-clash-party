@@ -42,3 +42,7 @@
         chromePath: ''
         chromeUserDataDir: ''
         chromeArgs: []
+        # Switch to the fastest node on start and re-check every optimizeIntervalSeconds.
+        autoOptimize: true
+        optimizeGroup: ''            # empty = the MATCH target, else the first Selector
+        optimizeIntervalSeconds: 300 # 5 minutes

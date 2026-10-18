@@ -97,6 +97,9 @@ dsh plugin --profile <profile> add link:<本目录路径>
 | `subscriptions[]` | `[]` | `id / url / interval / userAgent / prefix / mode`；`interval` 单位秒，**默认 3600（60 分钟）** |
 | `nodes[]` | `[]` | 节点 URI 列表 |
 | `healthCheckUrl` | gstatic 204 | 测速目标 |
+| `autoOptimize` | `true` | 启动时测速并切到最快节点，之后按周期复检 |
+| `optimizeGroup` | `''` | 参与选优的分组；空 = 配置里 `MATCH` 指向的组，再退回第一个 Selector |
+| `optimizeIntervalSeconds` | `300` | 选优复检周期（秒），默认 5 分钟 |
 
 ## 订阅自动刷新
 
@@ -113,6 +116,24 @@ dsh plugin --profile <profile> add link:<本目录路径>
 
 - 多条订阅同时存在时，按其中**最短**的 `interval` 触发一次统一刷新。
 - 也可以随时手动刷新：面板「刷新订阅」按钮，或工具 `proxy_refresh`。
+
+## 自动选优（默认每 5 分钟）
+
+- 内核启动后会先对**承载流量的分组**做一次全量测速，自动切到延迟最低的真实节点；
+  之后默认**每 5 分钟**复检一次。
+- 「承载流量的分组」= 配置里最后一条 `MATCH,<组>` 指向的 Selector；没有就取第一个 Selector。
+  也可以用 `optimizeGroup` 指定。
+- 只认真实节点：`DIRECT` / `REJECT` 等内置策略，以及其他分组，都不会被选中。
+- 关掉或改周期：
+
+  ```yaml
+  autoOptimize: true
+  optimizeIntervalSeconds: 300   # 改成 600 就是每 10 分钟
+  optimizeGroup: '🚀节点选择'      # 可选，固定优化的分组
+  ```
+
+- 手动触发：面板右上角的 ★ 按钮，或工具 `proxy_optimize`。
+- 结果会写在 `proxy_status.optimize` 里（分组、选中的节点、延迟、下次复检时间）。
 
 ## 三条输入路径
 
@@ -138,6 +159,7 @@ bootstrapConfig ──(端口改写/tun 关闭)───────────
 | `proxy_test` | 节点 / 分组 / provider 测速（provider 会先补拉订阅文件） |
 | `proxy_import` | 导入节点 URI，持久化并热重载 |
 | `proxy_refresh` | 重新拉取全部订阅并热重载 |
+| `proxy_optimize` | 对承载流量的分组测速，并切换到最快节点 |
 
 ## 面板
 
@@ -167,7 +189,7 @@ bootstrapConfig ──(端口改写/tun 关闭)───────────
 - 宿主 `webServer` 上的 `/dsh-proxy/*` 精确路由（存在时）
 - 独立回环服务 `127.0.0.1:<panelPort>`（始终启动，Electron 从 `file://` 加载时也能用）
 
-路由：`status`(GET)、`nodes` / `start` / `stop` / `select` / `test` / `import` / `refresh` / `mode`(POST)。
+路由：`status`(GET)、`nodes` / `start` / `stop` / `select` / `test` / `import` / `refresh` / `mode` / `chrome` / `optimize`(POST)。
 
 ## 让浏览器 / 其他程序走这个代理
 

@@ -8,6 +8,7 @@ import path from 'node:path'
 import { parseNodeInput, toClashYaml } from '../lib/node-uri.js'
 import { composeConfig, detectBootstrapSelector } from '../lib/compose.js'
 import { buildChromeArgs, resolveChromePath } from '../lib/chrome.js'
+import { pickFastest } from '../lib/index.js'
 
 const B = (s) => Buffer.from(s, 'utf8').toString('base64')
 let passed = 0
@@ -171,6 +172,23 @@ test('resolveChromePath honours an explicit path only when it exists', () => {
   assert.equal(resolveChromePath(fake, {}, 'linux'), fake)
   assert.equal(resolveChromePath(path.join(tmp, 'nope'), {}, 'linux'), undefined)
   assert.equal(resolveChromePath('', { DSH_PROXY_CHROME: fake }, 'linux'), fake)
+})
+
+test('pickFastest ignores missing/failed delays and returns the minimum', () => {
+  assert.equal(pickFastest(undefined), undefined)
+  assert.equal(pickFastest([]), undefined)
+  assert.equal(pickFastest([{ name: 'a', delay: null }, { name: 'b', delay: 0 }]), undefined)
+  const best = pickFastest([
+    { name: 'slow', delay: 320 },
+    { name: 'dead', delay: null },
+    { name: 'fast', delay: 74 },
+    { name: 'mid', delay: 120 },
+    { name: 'zero', delay: 0 },
+    { name: 'DIRECT', delay: 3 },
+    { name: 'REJECT', delay: 1 },
+  ])
+  assert.equal(best.name, 'fast', 'built-in DIRECT/REJECT must never win')
+  assert.equal(best.delay, 74)
 })
 
 console.log(`\n${passed} passed${process.exitCode ? ', with failures' : ''}`)

@@ -102,6 +102,9 @@ Restart DSH to load it.
 | `subscriptions[]` | `[]` | `id / url / interval / userAgent / prefix / mode`; `interval` is seconds, **default 3600 (60 minutes)** |
 | `nodes[]` | `[]` | Node URIs |
 | `healthCheckUrl` | gstatic 204 | Latency test target |
+| `autoOptimize` | `true` | Test on start and switch to the fastest node, then re-check on a timer |
+| `optimizeGroup` | `''` | Group to optimize; empty = the `MATCH` target, else the first Selector |
+| `optimizeIntervalSeconds` | `300` | Re-check period in seconds (5 minutes) |
 
 ## Subscription refresh
 
@@ -119,6 +122,25 @@ Restart DSH to load it.
 
 - With several subscriptions the **shortest** `interval` drives one shared refresh tick.
 - Refresh on demand with the panel button or the `proxy_refresh` tool.
+
+## Auto-optimize (every 5 minutes by default)
+
+- On start the plugin delay-tests the **group that routes traffic** and switches it to the
+  fastest real node; it then re-checks **every 5 minutes**.
+- "The group that routes traffic" is the Selector named by the last `MATCH,<group>` rule,
+  falling back to the first Selector. Pin it with `optimizeGroup`.
+- Only real nodes are candidates: built-in policies (`DIRECT`, `REJECT`, …) and other groups
+  are never selected.
+- Turn it off or change the period:
+
+  ```yaml
+  autoOptimize: true
+  optimizeIntervalSeconds: 300   # 600 = every 10 minutes
+  optimizeGroup: '🚀节点选择'      # optional, pin the group
+  ```
+
+- Trigger by hand with the ★ button in the panel header or the `proxy_optimize` tool.
+- The last result lives in `proxy_status.optimize` (group, node, delay, next run).
 
 ## Input paths
 
@@ -144,6 +166,7 @@ bootstrapConfig ──(ports rewritten, tun forced off)────────�
 | `proxy_test` | delay-test nodes / a group / a provider (refreshes a missing file first) |
 | `proxy_import` | import node URIs, persist, hot-reload |
 | `proxy_refresh` | pull every subscription again and hot-reload |
+| `proxy_optimize` | test the traffic group and switch to its fastest node |
 
 ## Panel
 
@@ -176,7 +199,7 @@ to the host over the plugin's own HTTP surface:
 - a standalone loopback server on `127.0.0.1:<panelPort>`, always started, so a renderer loaded
   from `file://` still works
 
-Routes: `status` (GET), `nodes` / `start` / `stop` / `select` / `test` / `import` / `refresh` / `mode` (POST).
+Routes: `status` (GET), `nodes` / `start` / `stop` / `select` / `test` / `import` / `refresh` / `mode` / `chrome` / `optimize` (POST).
 
 ## Pointing other programs at it
 
