@@ -2,6 +2,8 @@
 
 [English](README.md) | 中文
 
+[![CI](https://github.com/whhomi/dsh-clash-party/actions/workflows/ci.yml/badge.svg)](https://github.com/whhomi/dsh-clash-party/actions/workflows/ci.yml)
+
 > 仓库：<https://github.com/whhomi/dsh-clash-party>（包名仍为 `dsh-proxy`，两者不影响安装）
 
 给 DeepSeek Harness（DSH）用的**自托管代理插件**：插件自己在宿主进程里托管一个
@@ -183,6 +185,17 @@ geo 资产（`Country.mmdb` / `geosite.dat` / `geoip.dat`）会在启动时从 `
 而不是让内核卡在下载上。
 
 ## 测试
+
+离线单元测试（不需要内核、不联网，CI 里跑的就是这个）：
+
+```bash
+node test/unit.mjs
+```
+
+覆盖：7 种节点 URI 解析、去重与重名、base64 订阅、未知协议报错、YAML 生成、
+配置编译（端口改写 / tun 关闭 / provider 与分组注入）。
+
+端到端冒烟测试（需要本机有内核，可选）：
 
 ```bash
 DSH_PROXY_CORE=/path/to/mihomo \

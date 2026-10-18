@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: syntax + unit (node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['20', '22']
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Syntax check every module
+        run: |
+          for f in lib/*.js test/*.mjs; do
+            node --check "$f"
+          done
+
+      - name: Unit tests (no core, no network)
+        run: node test/unit.mjs
+
+  package:
+    name: package manifest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate package.json and bundle patch
+        run: |
+          node -e '
+            const pkg = require("./package.json");
+            for (const key of ["name", "version", "main", "dsh", "exports"]) {
+              if (!pkg[key]) throw new Error("package.json is missing " + key);
+            }
+            if (!pkg.dsh.bundle?.patch) throw new Error("dsh.bundle.patch is required");
+            if (!pkg.dsh.client?.platform) throw new Error("dsh.client.platform is required");
+            if (!pkg.exports["./client"]) throw new Error("a client entry is required");
+            console.log("package.json ok:", pkg.name + "@" + pkg.version);
+          '
+      - name: Bundle patch exists and mentions the plugin id
+        run: |
+          test -f cordis.patch.yml
+          grep -q "id: dsh-proxy" cordis.patch.yml
+          echo "cordis.patch.yml ok"

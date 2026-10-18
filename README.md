@@ -2,6 +2,8 @@
 
 English | [中文](README.zh.md)
 
+[![CI](https://github.com/whhomi/dsh-clash-party/actions/workflows/ci.yml/badge.svg)](https://github.com/whhomi/dsh-clash-party/actions/workflows/ci.yml)
+
 > Repository: <https://github.com/whhomi/dsh-clash-party> (the package stays named `dsh-proxy`; the repo name does not affect installation)
 
 A **self-hosted proxy plugin** for DeepSeek Harness (DSH). The plugin runs a
@@ -190,6 +192,17 @@ Geo assets (`Country.mmdb` / `geosite.dat` / `geoip.dat`) are copied at start fr
 with a clear error instead of letting the core hang on a download.
 
 ## Test
+
+Offline unit tests (no core, no network — this is what CI runs):
+
+```bash
+node test/unit.mjs
+```
+
+Covers the seven node-URI schemes, dedupe and duplicate naming, base64 blobs, unknown-scheme
+errors, YAML emission, and config composition (port rewrite, tun off, provider and group injection).
+
+End-to-end smoke test (needs a local core, optional):
 
 ```bash
 DSH_PROXY_CORE=/path/to/mihomo \
