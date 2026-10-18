@@ -1,0 +1,39 @@
+# dsh-proxy bundle patch — inserts the host plugin row into the profile roster.
+#
+# Activate with:
+#   dsh plugin --profile <profile> add link:<path-to-this-directory>
+#
+# The row is a bare host plugin: it owns a self-hosted mihomo core, composes the
+# core config from a bootstrap file plus subscription providers plus imported node
+# URIs, and registers the agent tools proxy_status / proxy_start / proxy_stop /
+# proxy_nodes / proxy_select / proxy_test / proxy_import / proxy_refresh.
+#
+# Ports below are defaults; change them if they collide with anything on your machine.
+- insert:
+    - id: dsh-proxy
+      name: 'dsh-proxy'
+      config:
+        enabled: true
+        # Start the core together with the harness. Set false to start it from the panel.
+        autoStart: false
+        # Loopback ports owned by this plugin.
+        httpPort: 17890          # mixed HTTP/SOCKS proxy the core listens on
+        controllerPort: 19090    # mihomo REST API
+        panelPort: 17891         # panel carrier (does not depend on the host web server)
+        # Path to a mihomo executable. Empty = <dataDir>/bin/mihomo(.exe) or PATH.
+        corePath: ''
+        # Data dir. Empty = $DSH_HOME/proxy (fallback: ~/.dsh/proxy).
+        dataDir: ''
+        # Any Clash-format YAML used as the base config (ports/controller are
+        # rewritten, tun is forced off). Empty = a minimal generated config.
+        bootstrapConfig: ''
+        # Example:
+        # subscriptions:
+        #   - id: airport
+        #     url: 'https://example.com/subscribe?token=...'
+        #     interval: 3600
+        #     userAgent: 'clash-verge/v2.0.0'
+        #     prefix: '[sub] '
+        subscriptions: []
+        # Single nodes as URIs (ss/trojan/vmess/vless/hysteria2/tuic).
+        nodes: []
