@@ -147,13 +147,22 @@ bootstrapConfig ──(ports rewritten, tun forced off)────────�
 
 ## Panel
 
-The layout follows clash-party's proxy page:
+The layout mirrors clash-party's proxy page (left function rail + right group/node cards):
 
-- **Toolbar**: status dot, version, **Rule / Global / Direct** mode switch, test, refresh, start/stop
-- **Meta bar**: proxy address, node count, subscription size + refresh period + next refresh
-- **Left group rail**: group name with member count, active group highlighted
-- **Right node grid**: search filter, two-column cards, latency chip
-  (green <150ms / yellow <300ms / red otherwise), active card outlined, click to switch
+- **Left rail**
+  - **Rule / Global / Direct** segmented mode switch (patches the core's `/configs` live)
+  - **Subscription card**: name, used/total, traffic bar, expiry, refresh button
+    (fed by the `subscription-userinfo` response header on every pull)
+  - **Two stat tiles**: group count / node count
+  - **Core card**: version, proxy address, start / stop
+- **Right pane**
+  - Header with the node total and a refresh control
+  - **Group cards (accordion)**: name + type badge (Selector/URLTest…), current node,
+    member count, per-group test button, expand/collapse
+  - Expanded: **node card grid** with name, protocol badge (`Vless` / `Hysteria2` /
+    `Shadowsocks`), `udp` / `xudp` chips, and the latency number on the right
+    (green <150ms / yellow <300ms / red otherwise). The active node is outlined in blue;
+    clicking switches to it
 - A red banner names the expected core path when no core is installed
 
 The browser half registers two slots — `sidebar.panellist` (icon) and `main` (page) — and talks
